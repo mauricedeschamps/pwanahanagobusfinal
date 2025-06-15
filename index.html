@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Okinawa Transportation Info Naha-Nago</title>
+    <meta name="theme-color" content="#121212">
+    <meta name="description" content="Okinawa Transportation Information for Naha-Nago route">
+    <link rel="manifest" id="manifest-placeholder">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --accent-color: #4CAF50;
+            --card-bg: #1e1e1e;
+            --header-bg: #0a0a0a;
+        }
+        
+        .light-mode {
+            --bg-color: #f5f5f5;
+            --text-color: #212121;
+            --accent-color: #2E7D32;
+            --card-bg: #ffffff;
+            --header-bg: #e0e0e0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        header {
+            background-color: var(--header-bg);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            margin: 0;
+            color: var(--accent-color);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background-color: var(--header-bg);
+        }
+        
+        .mode-toggle, .lang-toggle {
+            background: var(--card-bg);
+            border: none;
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .main-content {
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .transport-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .transport-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .transport-card h2 {
+            margin-top: 0;
+            color: var(--accent-color);
+        }
+        
+        .transport-card p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .price {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
+        .bus-line {
+            position: fixed; 
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .bus-line svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .detail-page {
+            display: none;
+            padding: 1rem;
+        }
+        
+        .back-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: var(--header-bg);
+            margin-top: 2rem;
+        }
+        
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .route-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--card-bg);
+            border-radius: 5px;
+        }
+        
+        .transport-image-container {
+            width: 100%;
+            padding: 0 1rem;
+            box-sizing: border-box;
+            margin: 1rem 0;
+        }
+        
+        .transport-image {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+            border-radius: 5px;
+            object-fit: contain;
+        }
+        
+        /* PWA install button */
+        .install-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 id="header-title">Okinawa Transportation Info</h1>
+        <p id="route-title">Naha-Nago</p>
+    </header>
+    
+    <div class="controls">
+        <button class="mode-toggle" id="modeToggle">
+            <span id="modeIcon">🌙</span>
+            <span id="modeText">Dark Mode</span>
+        </button>
+        <button class="lang-toggle" id="langToggle">
+            <span id="langIcon">🇬🇧</span>
+            <span id="langText">English</span>
+        </button>
+    </div>
+    
+    <div class="main-content" id="mainPage">
+        <div class="transport-card" data-transport="car">
+            <h2 id="car-title">By Car</h2>
+            <p id="car-highway">Highway: ¥1,340 (ETC ¥860)</p>
+            <p id="car-normal">Normal road (National Route 58)</p>
+            <p id="car-distance">Distance: About 70km (Naha to Nago)</p>
+        </div>
+        
+        <div class="transport-card" data-transport="oas">
+            <h2>OAS (Okinawa Airport Shuttle)</h2>
+            <p id="oas-route">Airport, Asahibashi Bus Terminal, Kencho-kita → (via Chubu Resort) → Nago City Office</p>
+            <p id="oas-note">*Does not stop at Nago Bus Terminal</p>
+            <p class="price">¥2,000</p>
+        </div>
+        
+        <div class="transport-card" data-transport="ykb">
+            <h2>YKB (Yanbaru Express Bus)</h2>
+            <p id="ykb-route">Airport, Kencho-kita, Tomari Port → (Highway) → Nago City Office</p>
+            <p id="ykb-note">*Does not stop at Asahibashi Bus Terminal (4 min walk from Kencho-kita)</p>
+            <p class="price">¥1,650</p>
+        </div>
+        
+        <div class="transport-card" data-transport="bus111">
+            <h2>Bus #111</h2>
+            <p id="bus111-route">Airport, Asahibashi Bus Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal</p>
+            <p id="bus111-note">*Does not stop at Kencho-kita. Does not go to Motobu/Churaumi Aquarium area.</p>
+            <p class="price">¥2,420</p>
+        </div>
+        
+        <div class="transport-card" data-transport="bus117">
+            <h2>Bus #117</h2>
+            <p id="bus117-route">Airport, Asahibashi Bus Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal, Motobu, Churaumi Aquarium area</p>
+            <p id="bus117-note">*Does not stop at Kencho-kita</p>
+            <p class="price">¥2,420</p>
+        </div>
+        
+        <div class="transport-card" data-transport="bus20">
+            <h2>Bus #20/120</h2>
+            <p id="bus20-route">Local bus stopping at all stations (not recommended - takes 2.5 hours)</p>
+            <p id="bus20-note">Stops at all major west coast locations</p>
+            <p class="price">¥2,190</p>
+        </div>
+        
+        <div class="transport-card" data-transport="ferry">
+            <h2 id="ferry-title">High-speed Ferry</h2>
+            <p id="ferry-schedule1">1. Naha Tomari Port (08:30) → (09:45) Nago Port (10:05) → Toguchi Port (10:30)</p>
+            <p id="ferry-schedule2">2. Toguchi Port (10:50) → Naha Tomari Port (12:05) *Does not stop at Nago Port</p>
+            <p id="ferry-schedule3">3. Naha Tomari Port (14:25) → Toguchi Port (15:40) *Does not stop at Nago Port</p>
+            <p id="ferry-schedule4">4. Toguchi Port (16:00) → (16:25) Nago Port (16:45) → Naha Tomari Port (18:00)</p>
+            <p class="price">¥2,000 one way</p>
+        </div>
+        
+        <div class="route-info" id="route-info">
+            <p id="fare-note">Fares are for Naha-Nago route</p>
+            <p id="naha-stops"><strong>Major bus stops in Naha:</strong><br>
+                Airport, Asahibashi Bus Terminal (4 min walk) Kencho-kita, Tomari Port, Shintoshin</p>
+            <p id="nago-stops"><strong>Major bus stops in Nago:</strong><br>
+                Nago City Office (central stop for all buses from Naha. One block north is Nago City Office North, two blocks is Government Office Bldg.)<br>
+                Nago Bus Terminal (gateway to northern Yanbaru area)</p>
+            <p id="motobu-stops"><strong>Major bus stops in Motobu:</strong><br>
+                Motobu Port, Toguchi Port (two ports), Churaumi Aquarium (Kinen Park Mae)</p>
+        </div>
+    </div>
+    
+    <!-- Detail pages -->
+    <div class="detail-page" id="carDetail">
+        <button class="back-button" onclick="backToMain()">← Back</button>
+        <h2 id="car-detail-title">By Car: Naha to Nago</h2>
+        <div class="transport-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj3VeMw_kfoK6nPiL2AfjvCSNdXUEy2-b8yUboz7KT32X-vD_zh753Z9I&s=10" class="transport-image">
+        </div>
+        <p id="car-detail-highway"><strong>Highway:</strong> ¥1,340 (ETC ¥860)</p>
+        <p id="car-detail-normal"><strong>Normal road:</strong> National Route 58</p>
+        <p><strong id="car-detail-distance">Distance:</strong> About 70km</p>
+        <p id="car-detail-time"><strong>Estimated time:</strong> About 1 hour via highway, 1.5-2 hours via normal road</p>
+    </div>
+    
+    <div class="detail-page" id="oasDetail">
+        <button class="back-button" onclick="backToMain()">← Back</button>
+        <h2>OAS (Okinawa Airport Shuttle)</h2>
+        <div class="transport-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSChnR9gk50M6imTbhjEHQ1itY9ezPrfkFE_6ChVCjgjUchMZofeuTBZpe&s=10" class="transport-image">
+        </div>
+        <p id="oas-detail-route"><strong>Route:</strong> Airport, Asahibashi Bus Terminal, Kencho-kita → (via Chubu Resort) → Nago City Office (continues to Motobu Port, Churaumi Aquarium area)</p>
+        <p class="price">¥2,000</p>
+        <p id="oas-detail-note">*Does not stop at Nago Bus Terminal</p>
+        <p><strong id="oas-detail-website">Website:</strong> <a href="https://www.okinawa-shuttle.co.jp/en/" target="_blank">https://www.okinawa-shuttle.co.jp/en/</a></p>
+        <p id="oas-detail-features"><strong>Features:</strong> Direct service from airport to resort areas, comfortable seating</p>
+    </div>
+    
+    <div class="detail-page" id="ykbDetail">
+        <button class="back-button" onclick="backToMain()">← Back</button>
+        <h2>YKB (Yanbaru Express Bus)</h2>
+        <div class="transport-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKaKLiU7_jZfzZgk_MI_W-POzKOHrz6VKIjy4V138FhbCv0AUKyntxxBI&s=10" class="transport-image">
+        </div>
+        <p id="ykb-detail-route"><strong>Route:</strong> Airport, Kencho-kita, Tomari Port → (Highway) → Nago City Office (Nago Bus Terminal, Motobu Port, Churaumi Aquarium area, Nakijin)</p>
+        <p class="price">¥1,650</p>
+        <p id="ykb-detail-note">*Does not stop at Asahibashi Bus Terminal (4 min walk from Kencho-kita)</p>
+        <p><strong id="ykb-detail-website">Website:</strong> <a href="https://yanbaru-expressbus.com/" target="_blank">https://yanbaru-expressbus.com/</a></p>
+        <p id="ykb-detail-features"><strong>Features:</strong> Fast service via highway, serves northern Okinawa (Yanbaru) areas</p>
+    </div>
+    
+    <div class="detail-page" id="bus111Detail">
+        <button class="back-button" onclick="backToMain()">← Back</button>
+        <h2>Bus #111</h2>
+        <div class="transport-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVq4-A6gha1y4yQ3psg1cYcU394_D0_6Wbsw&s" class="transport-image">
+        </div>
+        <p id="bus111-detail-route"><strong>Route:</strong> Airport, Asahibashi Bus Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal (final stop)</p>
+        <p class="price">¥2,420</p>
+        <p id="bus111-detail-note">*Does not stop at Kencho-kita. Does not go to Motobu/Churaumi Aquarium area.</p>
+        <p><strong>Bus Companies:</strong> 
+            <a href="https://www.okinawabus.com/" target="_blank">Okinawa Bus</a>, 
+            <a href="http://www.ryukyubus.com/" target="_blank">Ryukyu Bus</a>, 
+            <a href="http://www.toyobus.jp/" target="_blank">Toyo Bus</a>, 
+            <a href="http://www.nahabus.co.jp/" target="_blank">Naha Bus</a>
+        </p>
+        <p id="bus111-detail-features"><strong>Features:</strong> Frequent service, highway express</p>
+    </div>
+    
+    <div class="detail-page" id="bus117Detail">
+        <button class="back-button" onclick="backToMain()">← Back</button>
+        <h2>Bus #117</h2>
+        <div class="transport-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTivqR7tZcucR5SjMC4YBl5X6GbkcnNXTn-P0Hdupc-MOlajsPFaZ-7lL0&s=10" class="transport-image">
+        </div>
+        <p id="bus117-detail-route"><strong>Route:</strong> Airport, Asahibashi Bus Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal, Motobu, Churaumi Aquarium area</p>
+        <p class="price">¥2,420</p>
+        <p id="bus117-detail-note">*Does not stop at Kencho-kita</p>
+        <p><strong>Bus Companies:</strong> 
+            <a href="https://www.okinawabus.com/" target="_blank">Okinawa Bus</a>, 
+            <a href="http://www.ryukyubus.com/" target="_blank">Ryukyu Bus</a>, 
+            <a href="http://www.toyobus.jp/" target="_blank">Toyo Bus</a>, 
+            <a href="http://www.nahabus.co.jp/" target="_blank">Naha Bus</a>
+        </p>
+        <p id="bus117-detail-features"><strong>Features:</strong> Service to Churaumi Aquarium, highway express</p>
+    </div>
+    
+    <div class="detail-page" id="bus20Detail">
+        <button class="back-button" onclick="backToMain()">← Back</button>
+        <h2>Bus #20/120</h2>
+        <div class="transport-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT0hH9RRkpicqfnwC76IozHqOnNwULcrK7eIIQ8bLTGRkVV-98y88vimS8&s=10" class="transport-image">
+        </div>
+        <p id="bus20-detail-route"><strong>Route:</strong> Local bus stopping at all stations along west coast</p>
+        <p class="price">¥2,190</p>
+        <p id="bus20-detail-time"><strong>Time:</strong> About 2.5 hours (not recommended for quick travel)</p>
+        <p><strong>Bus Companies:</strong> 
+            <a href="https://www.okinawabus.com/" target="_blank">Okinawa Bus</a>, 
+            <a href="http://www.ryukyubus.com/" target="_blank">Ryukyu Bus</a>
+        </p>
+        <p id="bus20-detail-features"><strong>Features:</strong> Stops at all major west coast locations, local experience</p>
+    </div>
+    
+    <div class="detail-page" id="ferryDetail">
+        <button class="back-button" onclick="backToMain()">← Back</button>
+        <h2 id="ferry-detail-title">High-speed Ferry</h2>
+        <div class="transport-image-container">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTK7lV3wzYL0kHRGXMVdWrrqkqQw8FIlgUkMsSw9aQw-ZbdGxu0Hm59aAc&s=10" class="transport-image">
+        </div>
+        <p id="ferry-detail-schedule1"><strong>Schedule 1:</strong> Naha Tomari Port (08:30) → (09:45) Nago Port (10:05) → Toguchi Port (10:30)</p>
+        <p id="ferry-detail-schedule2"><strong>Schedule 2:</strong> Toguchi Port (10:50) → Naha Tomari Port (12:05) *Does not stop at Nago Port</p>
+        <p id="ferry-detail-schedule3"><strong>Schedule 3:</strong> Naha Tomari Port (14:25) → Toguchi Port (15:40) *Does not stop at Nago Port</p>
+        <p id="ferry-detail-schedule4"><strong>Schedule 4:</strong> Toguchi Port (16:00) → (16:25) Nago Port (16:45) → Naha Tomari Port (18:00)</p>
+        <p class="price">¥2,000 one way</p>
+        <p><strong id="ferry-detail-website">Website:</strong> <a href="https://daiichi-marine.com/" target="_blank">https://daiichi-marine.com/</a></p>
+        <p id="ferry-detail-features"><strong>Features:</strong> Scenic route, avoids traffic, limited schedule</p>
+    </div>
+    
+    <div class="bus-line">
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none">
+            <path d="M0,50 Q100,10 200,50 T400,50 T600,30 T800,70 T1000,50" 
+                  stroke="#4CAF50" 
+                  stroke-width="4" 
+                  fill="none" 
+                  stroke-dasharray="10,5" />
+        </svg>
+    </div>
+    
+    <button id="installBtn" class="install-btn">Install App</button>
+    
+    <footer>
+        <a href="mailto:mementomorikatsu@gmail.com" id="contact-link">Contact me<br>mementomorikatsu@gmail.com</a>
+    </footer>
+    
+    <script>
+        // Dark/light mode toggle
+        const modeToggle = document.getElementById('modeToggle');
+        const modeIcon = document.getElementById('modeIcon');
+        const modeText = document.getElementById('modeText');
+        let darkMode = true;
+        
+        modeToggle.addEventListener('click', () => {
+            darkMode = !darkMode;
+            if (darkMode) {
+                document.body.classList.remove('light-mode');
+                modeIcon.textContent = '🌙';
+                modeText.textContent = isJapanese ? 'ダークモード' : 'Dark Mode';
+            } else {
+                document.body.classList.add('light-mode');
+                modeIcon.textContent = '☀️';
+                modeText.textContent = isJapanese ? 'ライトモード' : 'Light Mode';
+            }
+        });
+        
+        // Language toggle
+        const langToggle = document.getElementById('langToggle');
+        const langIcon = document.getElementById('langIcon');
+        const langText = document.getElementById('langText');
+        let isJapanese = false;
+        
+        langToggle.addEventListener('click', () => {
+            isJapanese = !isJapanese;
+            updateLanguage();
+        });
+        
+        function updateLanguage() {
+            if (isJapanese) {
+                langIcon.textContent = '🇯🇵';
+                langText.textContent = '日本語';
+                document.getElementById('header-title').textContent = '沖縄交通情報';
+                document.getElementById('route-title').textContent = '那覇ー名護';
+                
+                // Main page translations
+                document.getElementById('car-title').textContent = '車';
+                document.getElementById('car-highway').textContent = '高速道路: ¥1,340 (ETC ¥860)';
+                document.getElementById('car-normal').textContent = '一般道路(国道58号線)';
+                document.getElementById('car-distance').textContent = '距離: 約70km (那覇ー名護)';
+                
+                document.getElementById('oas-route').textContent = '空港、旭橋バスターミナル、県庁北→(中部リゾート経由)→名護市役所';
+                document.getElementById('oas-note').textContent = '※名護バスターミナルには停まりません';
+                
+                document.getElementById('ykb-route').textContent = '空港、県庁北、泊港→(高速道路)→名護市役所';
+                document.getElementById('ykb-note').textContent = '※旭橋バスターミナルには停まりません (県庁北まで徒歩4分)';
+                
+                document.getElementById('bus111-route').textContent = '空港、旭橋バスターミナル→(高速道路バス停)→名護市役所、名護バスターミナル終点';
+                document.getElementById('bus111-note').textContent = '※県庁北には停まりません。本部港、美ら海水族館エリアへは行きません。';
+                
+                document.getElementById('bus117-route').textContent = '空港、旭橋バスターミナル→名護市役所、名護バスターミナル、本部港、美ら海水族館エリアまで運行';
+                document.getElementById('bus117-note').textContent = '※県庁北には停まりません。';
+                
+                document.getElementById('bus20-route').textContent = '各駅バス (おすすめしません - 2時間半かかります)';
+                document.getElementById('bus20-note').textContent = '西海岸の主要な場所には全て停まるローカル線です';
+                
+                document.getElementById('ferry-title').textContent = '高速艇';
+                document.getElementById('ferry-schedule1').textContent = '1.那覇泊港(08:30)→(09:45)名護港(10:05)→渡久地港(10:30)';
+                document.getElementById('ferry-schedule2').textContent = '2.渡久地港(10:50)→那覇泊港(12:05) ※名護港には寄港しません。';
+                document.getElementById('ferry-schedule3').textContent = '3.那覇泊港(14:25)→渡久地港(15:40) ※名護港には寄港しません。';
+                document.getElementById('ferry-schedule4').textContent = '4.渡久地港(16:00)→(16:25)名護港(16:45)→那覇泊港(18:00)';
+                
+                // Route info translations
+                document.getElementById('fare-note').textContent = '料金は那覇ー名護間';
+                document.getElementById('naha-stops').innerHTML = '<strong>那覇の主要なバス停:</strong><br>空港、旭橋バスターミナル (徒歩4分) 県庁北、泊港、新都心';
+                document.getElementById('nago-stops').innerHTML = '<strong>名護の主要なバス停:</strong><br>名護市役所(名護の中心で全ての那覇からのバスが停まる。北へ1ブロックが名護市役所北、2ブロックが合同庁舎前)<br>名護バスターミナル (さらに北部ヤンバルへのゲートウェイ)';
+                document.getElementById('motobu-stops').innerHTML = '<strong>本部の主要なバス停:</strong><br>本部港、渡久地港(2つの港)、美ら海水族館(記念公園前)';
+                
+                // Contact link
+                document.getElementById('contact-link').innerHTML = '連絡先<br>mementomorikatsu@gmail.com';
+                
+                // Detail pages translations
+                document.getElementById('car-detail-title').textContent = '車: 那覇ー名護';
+                document.getElementById('car-detail-highway').innerHTML = '<strong>高速道路:</strong> ¥1,340 (ETC ¥860)';
+                document.getElementById('car-detail-normal').innerHTML = '<strong>一般道路:</strong> 国道58号線';
+                document.getElementById('car-detail-distance').innerHTML = '<strong>距離:</strong> 約70km';
+                document.getElementById('car-detail-time').innerHTML = '<strong>所要時間:</strong> 高速道路で約1時間、一般道路で1.5-2時間';
+                
+                document.getElementById('oas-detail-route').innerHTML = '<strong>路線:</strong> 空港、旭橋バスターミナル、県庁北→(中部リゾート経由)→名護市役所 (本部港、美ら海水族館エリアまで運行)';
+                document.getElementById('oas-detail-note').textContent = '※名護バスターミナルには停まりません';
+                document.getElementById('oas-detail-website').innerHTML = '<strong>ウェブサイト:</strong>';
+                document.getElementById('oas-detail-features').innerHTML = '<strong>特徴:</strong> 空港からリゾート地への直行便、快適な座席';
+                
+                document.getElementById('ykb-detail-route').innerHTML = '<strong>路線:</strong> 空港、県庁北、泊港→(高速道路)→名護市役所 (名護バスターミナル、本部港、美ら海水族館エリア、今帰仁まで)';
+                document.getElementById('ykb-detail-note').textContent = '※旭橋バスターミナルには停まりません (県庁北まで徒歩4分)';
+                document.getElementById('ykb-detail-website').innerHTML = '<strong>ウェブサイト:</strong>';
+                document.getElementById('ykb-detail-features').innerHTML = '<strong>特徴:</strong> 高速道路経由の急行サービス、北部やんばる地域へアクセス';
+                
+                document.getElementById('bus111-detail-route').innerHTML = '<strong>路線:</strong> 空港、旭橋バスターミナル→(高速道路バス停)→名護市役所、名護バスターミナル (終点)';
+                document.getElementById('bus111-detail-note').textContent = '※県庁北には停まりません。本部港、美ら海水族館エリアへは行きません。';
+                document.getElementById('bus111-detail-features').innerHTML = '<strong>特徴:</strong> 名護バスターミナル終点';
+                
+                document.getElementById('bus117-detail-route').innerHTML = '<strong>路線:</strong> 空港、旭橋バスターミナル→名護市役所、名護バスターミナル、本部港、美ら海水族館エリア';
+                document.getElementById('bus117-detail-note').textContent = '※県庁北には停まりません。';
+                document.getElementById('bus117-detail-features').innerHTML = '<strong>特徴:</strong> 美ら海水族館までの運行便、路線バス';
+                
+                document.getElementById('bus20-detail-route').innerHTML = '<strong>路線:</strong> 西海岸沿いの各駅に停まるローカルバス';
+                document.getElementById('bus20-detail-time').innerHTML = '<strong>所要時間:</strong> 約2時間半 (お急ぎの方にはおすすめしません)';
+                document.getElementById('bus20-detail-features').innerHTML = '<strong>特徴:</strong> 西海岸の主要な場所に全て停車、ローカル体験';
+                
+                document.getElementById('ferry-detail-title').textContent = '高速艇';
+                document.getElementById('ferry-detail-schedule1').innerHTML = '<strong>スケジュール1:</strong> 那覇泊港(08:30)→(09:45)名護港(10:05)→渡久地港(10:30)';
+                document.getElementById('ferry-detail-schedule2').innerHTML = '<strong>スケジュール2:</strong> 渡久地港(10:50)→那覇泊港(12:05) ※名護港には寄港しません。';
+                document.getElementById('ferry-detail-schedule3').innerHTML = '<strong>スケジュール3:</strong> 那覇泊港(14:25)→渡久地港(15:40) ※名護港には寄港しません。';
+                document.getElementById('ferry-detail-schedule4').innerHTML = '<strong>スケジュール4:</strong> 渡久地港(16:00)→(16:25)名護港(16:45)→那覇泊港(18:00)';
+                document.getElementById('ferry-detail-website').innerHTML = '<strong>ウェブサイト:</strong>';
+                document.getElementById('ferry-detail-features').innerHTML = '<strong>特徴:</strong> 景色の良いルート、渋滞を回避、限定的なスケジュール';
+                
+                if (!darkMode) {
+                    modeText.textContent = 'ライトモード';
+                } else {
+                    modeText.textContent = 'ダークモード';
+                }
+            } else {
+                langIcon.textContent = '🇬🇧';
+                langText.textContent = 'English';
+                document.getElementById('header-title').textContent = 'Okinawa Transportation Info';
+                document.getElementById('route-title').textContent = 'Naha-Nago';
+                
+                // Main page translations back to English
+                document.getElementById('car-title').textContent = 'By Car';
+                document.getElementById('car-highway').textContent = 'Highway: ¥1,340 (ETC ¥860)';
+                document.getElementById('car-normal').textContent = 'Normal road (National Route 58)';
+                document.getElementById('car-distance').textContent = 'Distance: About 70km (Naha to Nago)';
+                
+                document.getElementById('oas-route').textContent = 'Airport, Asahibashi Terminal, Kencho-kita → (via Chubu Resort) → Nago City Office';
+                document.getElementById('oas-note').textContent = '*Does not stop at Nago Bus Terminal';
+                
+                document.getElementById('ykb-route').textContent = 'Airport, Kencho-kita, Tomari Port → (Highway) → Nago City Office';
+                document.getElementById('ykb-note').textContent = '*Does not stop at Asahibashi Terminal (4 min walk from Kencho-kita)';
+                
+                document.getElementById('bus111-route').textContent = 'Airport, Asahibashi Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal';
+                document.getElementById('bus111-note').textContent = '*Does not stop at Kencho-kita. Does not go to Motobu/Churaumi Aquarium area.';
+                
+                document.getElementById('bus117-route').textContent = 'Airport, Asahibashi Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal, Motobu, Churaumi Aquarium area';
+                document.getElementById('bus117-note').textContent = '*Does not stop at Kencho-kita';
+                
+                document.getElementById('bus20-route').textContent = 'Local bus stopping at all stations (not recommended - takes 2.5 hours)';
+                document.getElementById('bus20-note').textContent = 'Stops at all major west coast locations';
+                
+                document.getElementById('ferry-title').textContent = 'High-speed Ferry';
+                document.getElementById('ferry-schedule1').textContent = '1. Naha Tomari Port (08:30) → (09:45) Nago Port (10:05) → Toguchi Port (10:30)';
+                document.getElementById('ferry-schedule2').textContent = '2. Toguchi Port (10:50) → Naha Tomari Port (12:05) *Does not stop at Nago Port';
+                document.getElementById('ferry-schedule3').textContent = '3. Naha Tomari Port (14:25) → Toguchi Port (15:40) *Does not stop at Nago Port';
+                document.getElementById('ferry-schedule4').textContent = '4. Toguchi Port (16:00) → (16:25) Nago Port (16:45) → Naha Tomari Port (18:00)';
+                
+                // Route info translations back to English
+                document.getElementById('fare-note').textContent = 'Fares are for Naha-Nago route';
+                document.getElementById('naha-stops').innerHTML = '<strong>Major bus stops in Naha:</strong><br>Airport, Asahibashi Bus Terminal (4 min walk) Kencho-kita, Tomari Port, Shintoshin';
+                document.getElementById('nago-stops').innerHTML = '<strong>Major bus stops in Nago:</strong><br>Nago City Office (central stop for all buses from Naha. One block north is Nago City Office North, two blocks is Government Office Bldg.)<br>Nago Bus Terminal (gateway to northern Yanbaru area)';
+                document.getElementById('motobu-stops').innerHTML = '<strong>Major bus stops in Motobu:</strong><br>Motobu Port, Toguchi Port (two ports), Churaumi Aquarium (Kinen Park Mae)';
+                
+                // Contact link
+                document.getElementById('contact-link').innerHTML = 'Contact me<br>mementomorikatsu@gmail.com';
+                
+                // Detail pages translations back to English
+                document.getElementById('car-detail-title').textContent = 'By Car: Naha to Nago';
+                document.getElementById('car-detail-highway').innerHTML = '<strong>Highway:</strong> ¥1,340 (ETC ¥860)';
+                document.getElementById('car-detail-normal').innerHTML = '<strong>Normal road:</strong> National Route 58';
+                document.getElementById('car-detail-distance').innerHTML = '<strong>Distance:</strong> About 70km';
+                document.getElementById('car-detail-time').innerHTML = '<strong>Estimated time:</strong> About 1 hour via highway, 1.5-2 hours via normal road';
+                
+                document.getElementById('oas-detail-route').innerHTML = '<strong>Route:</strong> Airport, Asahibashi Terminal, Kencho-kita → (via Chubu Resort) → Nago City Office (continues to Motobu Port, Churaumi Aquarium area)';
+                document.getElementById('oas-detail-note').textContent = '*Does not stop at Nago Bus Terminal';
+                document.getElementById('oas-detail-website').innerHTML = '<strong>Website:</strong>';
+                document.getElementById('oas-detail-features').innerHTML = '<strong>Features:</strong> Direct service from airport to resort areas, comfortable seating';
+                
+                document.getElementById('ykb-detail-route').innerHTML = '<strong>Route:</strong> Airport, Kencho-kita, Tomari Port → (Highway) → Nago City Office (Nago Bus Terminal, Motobu Port, Churaumi Aquarium area, Nakijin)';
+                document.getElementById('ykb-detail-note').textContent = '*Does not stop at Asahibashi Terminal (4 min walk from Kencho-kita)';
+                document.getElementById('ykb-detail-website').innerHTML = '<strong>Website:</strong>';
+                document.getElementById('ykb-detail-features').innerHTML = '<strong>Features:</strong> Fast service via highway, serves northern Okinawa (Yanbaru) areas';
+                
+                document.getElementById('bus111-detail-route').innerHTML = '<strong>Route:</strong> Airport, Asahibashi Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal (final stop)';
+                document.getElementById('bus111-detail-note').textContent = '*Does not stop at Kencho-kita. Does not go to Motobu/Churaumi Aquarium area.';
+                document.getElementById('bus111-detail-features').innerHTML = '<strong>Features:</strong> Frequent service, highway express';
+                
+                document.getElementById('bus117-detail-route').innerHTML = '<strong>Route:</strong> Airport, Asahibashi Terminal → (Highway bus stops) → Nago City Office, Nago Bus Terminal, Motobu, Churaumi Aquarium area';
+                document.getElementById('bus117-detail-note').textContent = '*Does not stop at Kencho-kita';
+                document.getElementById('bus117-detail-features').innerHTML = '<strong>Features:</strong> Direct service to Churaumi Aquarium, highway express';
+                
+                document.getElementById('bus20-detail-route').innerHTML = '<strong>Route:</strong> Local bus stopping at all stations along west coast';
+                document.getElementById('bus20-detail-time').innerHTML = '<strong>Time:</strong> About 2.5 hours (not recommended for quick travel)';
+                document.getElementById('bus20-detail-features').innerHTML = '<strong>Features:</strong> Stops at all major west coast locations, local experience';
+                
+                document.getElementById('ferry-detail-title').textContent = 'High-speed Ferry';
+                document.getElementById('ferry-detail-schedule1').innerHTML = '<strong>Schedule 1:</strong> Naha Tomari Port (08:30) → (09:45) Nago Port (10:05) → Toguchi Port (10:30)';
+                document.getElementById('ferry-detail-schedule2').innerHTML = '<strong>Schedule 2:</strong> Toguchi Port (10:50) → Naha Tomari Port (12:05) *Does not stop at Nago Port';
+                document.getElementById('ferry-detail-schedule3').innerHTML = '<strong>Schedule 3:</strong> Naha Tomari Port (14:25) → Toguchi Port (15:40) *Does not stop at Nago Port';
+                document.getElementById('ferry-detail-schedule4').innerHTML = '<strong>Schedule 4:</strong> Toguchi Port (16:00) → (16:25) Nago Port (16:45) → Naha Tomari Port (18:00)';
+                document.getElementById('ferry-detail-website').innerHTML = '<strong>Website:</strong>';
+                document.getElementById('ferry-detail-features').innerHTML = '<strong>Features:</strong> Scenic route, avoids traffic, limited schedule';
+                
+                if (!darkMode) {
+                    modeText.textContent = 'Light Mode';
+                } else {
+                    modeText.textContent = 'Dark Mode';
+                }
+            }
+        }
+        
+        // Transport card click handlers
+        const transportCards = document.querySelectorAll('.transport-card');
+        transportCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const transportType = card.getAttribute('data-transport');
+                document.getElementById('mainPage').style.display = 'none';
+                document.getElementById(`${transportType}Detail`).style.display = 'block';
+            });
+        });
+        
+        function backToMain() {
+            document.querySelectorAll('.detail-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            document.getElementById('mainPage').style.display = 'block';
+        }
+        
+        // PWA functionality
+        // Generate and inject manifest
+        const manifest = {
+            "name": "Okinawa Transport",
+            "short_name": "Okinawa Transport",
+            "description": "Okinawa Transportation Information for Naha-Nago route",
+            "start_url": ".",
+            "display": "standalone",
+            "theme_color": "#121212",
+            "background_color": "#121212",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzEyMTIxMiIvPjxwYXRoIGQ9Ik0xMjgsMjU2IEMxMjgsMTg3LjY1IDE4Ny42NSwxMjggMjU2LDEyOCBDMzI0LjM1LDEyOCAzODQsMTg3LjY1IDM4NCwyNTYgQzM4NCwzMjQuMzUgMzI0LjM1LDM4NCAyNTYsMzg0IEMxODcuNjUsMzg0IDEyOCwzMjQuMzUgMTI4LDI1NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjMyIi8+PHBhdGggZD0iTTEyOCwyNTYgQzEyOCwzMjQuMzUgMTg3LjY1LDM4NCAyNTYsMzg0IEMzMjQuMzUsMzg0IDM4NCwzMjQuMzUgMzg0LDI1NiBDMzg0LDE4Ny42NSAzMjQuMzUsMTI4IDI1NiwxMjggQzE4Ny42NSwxMjggMTI4LDE4Ny42NSAxMjgsMjU2IiBmaWxsPSJub25lIiBzdHJva2U9IiMxMjEyMTIiIHN0cm9rZS13aWR0aD0iMTYiLz48cGF0aCBkPSJNMjU2LDEyOCBMNDQ4LDY0IE0yNTYsMTI4IEw2NCw2NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjE2Ii8+PHBhdGggZD0iTTI1NiwzODQgTDQ0OCw0NDggTTI1NiwzODQgTDY0LDQ0OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjE2Ii8+PC9zdmc+",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml"
+                }
+            ]
+        };
+        
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        document.getElementById('manifest-placeholder').href = manifestURL;
+        
+        // Service worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swURL = URL.createObjectURL(new Blob([
+                    `self.addEventListener('install', (event) => {
+                        event.waitUntil(self.skipWaiting());
+                    });
+                    
+                    self.addEventListener('activate', (event) => {
+                        event.waitUntil(self.clients.claim());
+                    });
+                    
+                    self.addEventListener('fetch', (event) => {
+                        event.respondWith(
+                            fetch(event.request).catch(() => {
+                                return new Response('You are offline. Please connect to the internet to use this app.');
+                            })
+                        );
+                    });`
+                ], {type: 'application/javascript'}));
+                
+                navigator.serviceWorker.register(swURL, {scope: './'})
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+        
+        // Install prompt
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+        
+        installBtn.addEventListener('click', () => {
+            installBtn.style.display = 'none';
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted install prompt');
+                } else {
+                    console.log('User dismissed install prompt');
+                }
+                deferredPrompt = null;
+            });
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('App was installed');
+            installBtn.style.display = 'none';
+            deferredPrompt = null;
+        });
+    </script>
+</body>
+</html>
